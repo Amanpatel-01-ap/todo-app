@@ -1,50 +1,52 @@
-const taskInput = document.getElementById("task-input");
-const addBtn = document.getElementById("add-btn");
-const taskList = document.getElementById("task-list");
+const taskInput = document.getElementById('taskInput');
+const addTaskBtn = document.getElementById('addTaskBtn');
+const taskList = document.getElementById('taskList');
 
-let tasks = JSON.parse(localStorage.getItem("tasks")) || [];
+// Load tasks from localStorage on page load
+window.onload = function () {
+    const savedTasks = JSON.parse(localStorage.getItem('tasks')) || [];
+    savedTasks.forEach(task => addTaskToDOM(task));
+};
 
-function renderTasks() {
-  taskList.innerHTML = "";
-  tasks.forEach((task, index) => {
-    const li = document.createElement("li");
-    li.className = task.done ? "completed" : "";
-    li.innerHTML = `
-      ${task.text}
-      <span>
-        <button onclick="toggleTask(${index})">✔️</button>
-        <button onclick="deleteTask(${index})">❌</button>
-      </span>
-    `;
+// Add task on button click
+addTaskBtn.addEventListener('click', function () {
+    const taskText = taskInput.value.trim();
+    if (taskText !== '') {
+        addTaskToDOM(taskText);
+        saveTask(taskText);
+        taskInput.value = '';
+    }
+});
+
+// Add task to UI
+function addTaskToDOM(taskText) {
+    const li = document.createElement('li');
+    li.textContent = taskText;
+
+    const deleteBtn = document.createElement('button');
+    deleteBtn.textContent = '❌';
+    deleteBtn.className = 'delete-btn';
+
+    // Delete task on click
+    deleteBtn.addEventListener('click', function () {
+        li.remove();
+        deleteTask(taskText);
+    });
+
+    li.appendChild(deleteBtn);
     taskList.appendChild(li);
-  });
 }
 
-function addTask() {
-  const taskText = taskInput.value.trim();
-  if (taskText) {
-    tasks.push({ text: taskText, done: false });
-    taskInput.value = "";
-    saveTasks();
-    renderTasks();
-  }
+// Save task to localStorage
+function saveTask(taskText) {
+    const tasks = JSON.parse(localStorage.getItem('tasks')) || [];
+    tasks.push(taskText);
+    localStorage.setItem('tasks', JSON.stringify(tasks));
 }
 
-function toggleTask(index) {
-  tasks[index].done = !tasks[index].done;
-  saveTasks();
-  renderTasks();
+// Delete task from localStorage
+function deleteTask(taskText) {
+    let tasks = JSON.parse(localStorage.getItem('tasks')) || [];
+    tasks = tasks.filter(task => task !== taskText);
+    localStorage.setItem('tasks', JSON.stringify(tasks));
 }
-
-function deleteTask(index) {
-  tasks.splice(index, 1);
-  saveTasks();
-  renderTasks();
-}
-
-function saveTasks() {
-  localStorage.setItem("tasks", JSON.stringify(tasks));
-}
-
-addBtn.addEventListener("click", addTask);
-renderTasks();
